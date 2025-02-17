@@ -11,7 +11,7 @@ Unknown taxa will inherit the taxonomy of the previously assigned taxonomic leve
 
 For example:
 k_Bacteria;p_Actinobacteriota;c_Coriobacteriia;o_Coriobacteriales;f_Eggerthellaceae;**g_** 
-"uc_f_Eggerthellaceae"
+**"uc_f_Eggerthellaceae"**
 
 
 ## Basic usages (phyloseq objects)
