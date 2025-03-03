@@ -51,7 +51,7 @@ genus.phylo.GTDB_r207
 
 ## Verify the compatibility with the enterotype package
 
-To verify the compatibility with the enterotype package, I am using the taxonomy of the GTDB_VDP5YL cohort as an example to predict its enterotypes. *This is not optimal, as the predictor was trained with the FGFP 3000 dataset using the GTDB_r86 database*. This is just to check if the taxonomy format is compatible with the enterotype pipeline
+To verify the compatibility with the enterotype package, I am using the taxonomy of the GTDB_VDP5YL cohort as an example to predict its enterotypes. **This is not optimal, as the predictor was trained with the FGFP 3000 dataset using the GTDB_r86 database**. This is just to check if the taxonomy format is compatible with the enterotype pipeline
 
 ```
 library(Enterotypes)
