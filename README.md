@@ -1,7 +1,7 @@
 # Phyloseq Format Converter
 
 ## Requirements
-- [ ] [phyloseq] (https://www.bioconductor.org/packages/release/bioc/html/phyloseq.html)
+- [ ] [phyloseq](https://www.bioconductor.org/packages/release/bioc/html/phyloseq.html)
 
 ## Add your files
 Functions for converting different dataformats to a phyloseq object.
