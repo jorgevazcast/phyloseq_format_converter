@@ -16,7 +16,7 @@ k_Bacteria;p_Actinobacteriota;c_Coriobacteriia;o_Coriobacteriales;f_Eggerthellac
 
 ## Basic usages (phyloseq objects)
 
-Convert the outfiles to a phyloseq object
+Convert the MPA outfiles to a phyloseq object
 
 ```
 >r
