@@ -15,13 +15,6 @@ k_Bacteria;p_Actinobacteriota;c_Coriobacteriia;o_Coriobacteriales;f_Eggerthellac
 
 
 ## Basic usages (phyloseq objects)
-Remove the first line of the metaphlan 4 output, its it start with an '#'
-
-```
-# GTDB output
-tail -n +2 ./Example_data/mpa_v4.1.1._gtdb_vdp5yl.tsv > mpa_v4.1.1._gtdb_vdp5yl.trim.tsv
-
-```
 
 Convert the outfiles to a phyloseq object
 
@@ -40,12 +33,12 @@ path_dir = "./"
 source(paste0(path_dir, "/Functions/MetaPhlAn_4_preprocessing_functions.R"))
 
 # Read the data.frame (GTDB_r207)
-genus <- read_infile_MetaPhlAn_GTDB( in.file="mpa_v4.1.1._gtdb_vdp5yl.trim.tsv",tax_level="genus")	
+genus <- read_infile_MetaPhlAn_GTDB( in.file="./Example_data/Example_mpa.GTDB_r207.tsv",tax_level="genus")	
 
 # Create the phyloseq object
 genus.phylo.GTDB_r207 <- phyloseq_format_MetaPhlAn(in.data = genus , database="GTDB_r207")
 
-genus.phylo.GTDB_r207
+taxa_names(genus.phylo.GTDB_r207) <- c(tax_table(genus.phylo.GTDB_r207)[,6])
 			
 ```
 

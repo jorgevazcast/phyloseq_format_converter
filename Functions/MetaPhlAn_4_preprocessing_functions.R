@@ -19,9 +19,9 @@ rar_phylo <- function(phylo.obj,Nreads){
 	
 }
 
-read_infile_MetaPhlAn <- function(in.file = "", tax_level = ""){  # Levels: SGB, species, genus
+read_infile_MetaPhlAn <- function(in.file = "", tax_level = "", skip.rows = 1){  # Levels: SGB, species, genus
 
-	Taxa_df <- utils::read.delim(in.file, sep = "\t", check.names = F)
+	Taxa_df <- utils::read.delim(in.file, sep = "\t", check.names = F, skip = skip.rows)
 	Taxa_df$clade_name <- as.character(Taxa_df$clade_name)
 
 	if (tax_level == "SGB") {
@@ -56,9 +56,9 @@ read_infile_MetaPhlAn <- function(in.file = "", tax_level = ""){  # Levels: SGB,
 	return(Taxa_df)
 }
 
-read_infile_MetaPhlAn_GTDB <- function(in.file = "", tax_level = ""){  # Levels:  species, genus
+read_infile_MetaPhlAn_GTDB <- function(in.file = "", tax_level = "", skip.rows = 1){  # Levels:  species, genus
 
-	Taxa_df <- utils::read.delim(in.file, sep = "\t", check.names = F)
+	Taxa_df <- utils::read.delim(in.file, sep = "\t", check.names = F, , skip = skip.rows)
 	Taxa_df$clade_name <- as.character(Taxa_df$clade_name)
 
 		
