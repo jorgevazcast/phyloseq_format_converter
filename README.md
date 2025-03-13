@@ -30,7 +30,7 @@ library(phyloseq)
 path_dir = "./"
 
 # Source the custom function for taxonomic assignment
-source(paste0(path_dir, "/Functions/MetaPhlAn_4_preprocessing_functions.R"))
+source(paste0(path_dir, "/Functions/MetaPhlAn_HUMAnN_4_preprocessing_functions.R"))
 
 # Read the data.frame (GTDB_r207)
 genus <- read_infile_MetaPhlAn_GTDB( in.file="./Example_data/Example_mpa.GTDB_r207.tsv",tax_level="genus")	

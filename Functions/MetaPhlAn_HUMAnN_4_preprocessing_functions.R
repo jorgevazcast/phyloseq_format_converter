@@ -1,8 +1,8 @@
 set.seed(12345)
 library(phyloseq)
 
-###################################################################
-########################     Functions     ########################
+#####################################################################
+########################      MetaPhlAn 4    ########################
 rar_phylo <- function(phylo.obj,Nreads){
 	cat("N reads: ", Nreads, "\n")
 	phylo.obj.rar = rarefy_even_depth( phylo.obj , replace=FALSE,  sample.size = Nreads )
@@ -180,4 +180,58 @@ phyloseq_format_MetaPhlAn <- function(in.data, database=c("mpa","GTDB_r207")){
 	out.phylo <- phyloseq::phyloseq(OTUs,TAXA)
 	return(out.phylo)
 }
+
+#####################################################################
+########################       HUMAnN 4      ########################
+
+read_infile_HUMAnN_4 <- function(in.file){
+
+	Abund_df <- utils::read.delim(in.file, sep = "\t", check.names = F)
+
+	colnames(Abund_df) <- gsub("Gene Family","names",colnames(Abund_df))
+	colnames(Abund_df) <- gsub("Pathway","names",colnames(Abund_df))
+	row.names(Abund_df) = Abund_df$names
+	Abund_df$names = NULL
+
+	Abund_df = Abund_df[, colSums(Abund_df) != 0] 
+	Abund_df = Abund_df[rowSums(Abund_df) != 0, ]
+
+	All <-  Abund_df
+	Features <-  Abund_df[!grepl("[|]",rownames(Abund_df)),]
+	Taxa_stratified <-  Abund_df[grepl("[|]",rownames(Abund_df)),]	
+	
+	list_ret <- list(All,Taxa_stratified,Features)
+	names(list_ret) <- c("All","Taxa_stratified","Features")
+	return(list_ret)	
+}
+
+phyloseq_format_HUMAnN <- function(in.data){
+	cat("\nCheck that the functions are in the rownames\nrownames: \n", 
+	head(rownames(in.data)), "\n\n")
+	
+	Tax_df <- data.frame(Function = rownames(in.data) )
+	rownames(Tax_df) <- rownames(in.data)
+	OTUs <- phyloseq::otu_table(in.data, taxa_are_rows = T)
+
+
+	OTUs <- phyloseq::otu_table(in.data, taxa_are_rows = T)
+	TAXA <- phyloseq::tax_table(as(Tax_df, "matrix"))
+	out.phylo <- phyloseq::phyloseq(OTUs, TAXA)
+	
+	return(out.phylo)
+}
+
+create_phyloseq_files <- function(Abund.list, prefix = "Out"){
+
+	All.pyhlo <- phyloseq_format_HUMAnN(in.data =  Abund.list$All )
+	Features.pyhlo <- phyloseq_format_HUMAnN(in.data =  Abund.list$Features )
+	Taxa_stratified.phylo <- phyloseq_format_HUMAnN(in.data =  Abund.list$Taxa_stratified )
+	
+	saveRDS(file = paste0(prefix,".All.phylo.rds"), All.pyhlo )
+	saveRDS(file = paste0(prefix,".Features.phylo.rds"), Features.pyhlo )
+	saveRDS(file = paste0(prefix,".Taxa_stratified.phylo.rds"), Taxa_stratified.phylo )			
+}
+
+
+
 
