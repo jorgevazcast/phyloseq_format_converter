@@ -3,11 +3,11 @@ library("phyloseq");
 library("microbiome"); 
 
 ### The function create_phyloseq_object_fun can accepts matrix or a data.frame
-create_phyloseq_object_fun <- function( data = data.frame() , tax = data.frame(), sample_dat = data.frame()  ){
+create_phyloseq_object_fun <- function( data = data.frame() , tax = matrix(), sample_dat = data.frame()  ){
 	cat("\n")	
 	### Remove the X in the colnames of the samples, sometimes happens when the input dara colnames has 2.NAME as the first character of the name
 	OTU = otu_table(data, taxa_are_rows = TRUE)
-	colnames(OTU)<-gsub("^X","",colnames(OTU))
+#	colnames(OTU)<-gsub("^X","",colnames(OTU))
 	
 	common_samples <- table(c(colnames(OTU) , rownames(sample_dat) ))
 	common_samples <- names(common_samples[common_samples == 2])
@@ -24,6 +24,8 @@ create_phyloseq_object_fun <- function( data = data.frame() , tax = data.frame()
 			
 			
 	OTU =  OTU[match(common_taxa,  rownames(OTU)),]
+	OTU = OTU[order(rowSums(OTU),decreasing=T),]
+	common_taxa <- rownames(OTU)
 	TAX = tax_table(tax[match(common_taxa,  rownames(tax)),])
 	
 	SD = sample_data(sample_dat[match(common_samples,  rownames(sample_dat)),])
