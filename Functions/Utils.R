@@ -19,7 +19,7 @@ create_phyloseq_object_fun <- function( data = data.frame() , tax = matrix(), sa
 	common_taxa <- names(common_taxa[common_taxa == 2])
 	cat("\nCommon taxa = ", length(common_taxa),"\n")
 	cat("Exclusive taxa from OTU table = ", length(setdiff( rownames(OTU) , common_taxa  )),"\n")	
-	cat("Exclusive taxa from Metadata table = ", length(setdiff(  rownames(tax) , common_taxa  )),"\n")		
+	cat("Exclusive taxa from Tax table = ", length(setdiff(  rownames(tax) , common_taxa  )),"\n")		
 	
 			
 			
