@@ -25,21 +25,21 @@ read_infile_MetaPhlAn <- function(in.file = "", tax_level = "", skip.rows = 1){ 
 	Taxa_df$clade_name <- as.character(Taxa_df$clade_name)
 
 	if (tax_level == "SGB") {
-		Taxa_df <- Taxa_df[grepl("t__",Taxa_df$clade_name),]
+		Taxa_df <- Taxa_df[grepl("[|]t__",Taxa_df$clade_name),]
 		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x){
 				vect <- unlist(strsplit(x, "[|]"))
 				TaxLevel <- grepl("t__",vect[length(vect)])	
 				return(TaxLevel)})	
 	}		
 	if (tax_level == "species") {
-		Taxa_df <- Taxa_df[grepl(";s__",Taxa_df$clade_name),]
+		Taxa_df <- Taxa_df[grepl("[|]s__",Taxa_df$clade_name),]
 		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x){
 				vect <- unlist(strsplit(x, "[|]"))
 				TaxLevel <- grepl("s__",vect[length(vect)])	
 				return(TaxLevel)})	
 	}
 	if (tax_level == "genus") {
-		Taxa_df <- Taxa_df[grepl(";g__",Taxa_df$clade_name),]
+		Taxa_df <- Taxa_df[grepl("[|]g__",Taxa_df$clade_name),]
 		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x){
 				vect <- unlist(strsplit(x, "[|]"))
 				TaxLevel <- grepl("g__",vect[length(vect)])	
@@ -115,7 +115,7 @@ MetaPhlAn_names_databases <- function(namesTaxa = c(), DB=c("mpa","GTDB_r207")  
 	return(taxa_names)
 }
 
-phyloseq_format_MetaPhlAn <- function(in.data, database=c("mpa","GTDB_r207")){
+phyloseq_format_MetaPhlAn <- function(in.data, database=c("mpa","GTDB_r207"), scale1M = F){
 
 	cat("\nCheck that the taxa is in the rownames\nrownames: \n", head(rownames(in.data)),"\n\n")
 	cat("\nDB taxonomy: ", database,"\n\n")
@@ -137,13 +137,14 @@ phyloseq_format_MetaPhlAn <- function(in.data, database=c("mpa","GTDB_r207")){
 	rownames(Tax_df) <- taxa_names	
 
 	Tax_df[Tax_df == "t_"] <- NA
+	Tax_df[Tax_df == "s_"] <- NA	
 	Tax_df[Tax_df == "g_"] <- NA
 	Tax_df[Tax_df == "f_"] <- NA
 	Tax_df[Tax_df == "o_"] <- NA
 	Tax_df[Tax_df == "c_"] <- NA
 	Tax_df[Tax_df == "p_"] <- NA
 	Tax_df[Tax_df == "k_"] <- NA			
-					
+		
 	### Complete the NA taxonomy 
 	for( i in 1:nrow(Tax_df) ){
 		# i <- 927
@@ -173,6 +174,9 @@ phyloseq_format_MetaPhlAn <- function(in.data, database=c("mpa","GTDB_r207")){
 	
 	colnames(Tax_df) <- TaxColumns[1:length(colnames(Tax_df))]
 	
+	if(scale1M == T){
+		in.data <-  in.data * 10000 
+	}
 	
 	OTUs <- phyloseq::otu_table(in.data,taxa_are_rows=T)
 	TAXA <- phyloseq::tax_table(as(Tax_df,"matrix"))

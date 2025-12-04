@@ -5,6 +5,12 @@ library("microbiome");
 ### The function create_phyloseq_object_fun can accepts matrix or a data.frame
 create_phyloseq_object_fun <- function( data = data.frame() , tax = matrix(), sample_dat = data.frame()  ){
 	cat("\n")	
+
+	if (!is.matrix(tax)) {
+		warning("The 'tax' object is not a matrix and will be converted to a matrix.")
+		tax <- as.matrix(tax)
+	}
+
 	### Remove the X in the colnames of the samples, sometimes happens when the input dara colnames has 2.NAME as the first character of the name
 	OTU = otu_table(data, taxa_are_rows = TRUE)
 #	colnames(OTU)<-gsub("^X","",colnames(OTU))
