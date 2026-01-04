@@ -262,24 +262,34 @@ phyloseq_format_MetaPhlAn <- function(in.data, database=c("mpa","GTDB_r207"), sc
 ########################       HUMAnN 4      ########################
 
 read_infile_HUMAnN_4 <- function(in.file){
-
-	Abund_df <- utils::read.delim(in.file, sep = "\t", check.names = F)
-
-	colnames(Abund_df) <- gsub("Gene Family","names",colnames(Abund_df))
-	colnames(Abund_df) <- gsub("Pathway","names",colnames(Abund_df))
-	row.names(Abund_df) = Abund_df$names
-	Abund_df$names = NULL
-
-	Abund_df = Abund_df[, colSums(Abund_df) != 0] 
-	Abund_df = Abund_df[rowSums(Abund_df) != 0, ]
-
-	All <-  Abund_df
-	Features <-  Abund_df[!grepl("[|]",rownames(Abund_df)),]
-	Taxa_stratified <-  Abund_df[grepl("[|]",rownames(Abund_df)),]	
+	# Read file with comment.char = "" to prevent "#" being treated as comment
+	# This allows reading headers that start with "# Gene Family"
+	Abund_df <- utils::read.delim(in.file, sep = "\t", check.names = F, comment.char = "")
 	
-	list_ret <- list(All,Taxa_stratified,Features)
-	names(list_ret) <- c("All","Taxa_stratified","Features")
-	return(list_ret)	
+	# Clean column names: remove "# " prefix if present
+	colnames(Abund_df) <- gsub("^# ", "", colnames(Abund_df))
+	
+	# Standardize first column name to "names"
+	colnames(Abund_df) <- gsub("Gene Family", "names", colnames(Abund_df))
+	colnames(Abund_df) <- gsub("Pathway", "names", colnames(Abund_df))
+	
+	# Set row names and remove the names column
+	row.names(Abund_df) <- Abund_df$names
+	Abund_df$names <- NULL
+	
+	# Remove empty columns and rows
+	Abund_df <- Abund_df[, colSums(Abund_df) != 0] 
+	Abund_df <- Abund_df[rowSums(Abund_df) != 0, ]
+	
+	# Separate into different data frames
+	All <- Abund_df
+	Features <- Abund_df[!grepl("[|]", rownames(Abund_df)), ]
+	Taxa_stratified <- Abund_df[grepl("[|]", rownames(Abund_df)), ]
+	
+	# Return as named list
+	list_ret <- list(All, Taxa_stratified, Features)
+	names(list_ret) <- c("All", "Taxa_stratified", "Features")
+	return(list_ret)
 }
 
 phyloseq_format_HUMAnN <- function(in.data){
