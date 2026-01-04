@@ -145,8 +145,10 @@ create_phyloseq_files(Abund.list = KO_taxa_list, prefix = "Out")
 
 | Function | Description |
 |----------|-------------|
+| `read_infile_MetaPhlAn()` | Reads MetaPhlAn output with default (mpa) taxonomy |
 | `read_infile_MetaPhlAn_GTDB()` | Reads MetaPhlAn output with GTDB taxonomy |
 | `phyloseq_format_MetaPhlAn()` | Converts MetaPhlAn data to phyloseq object |
 | `read_infile_HUMAnN_4()` | Reads HUMAnN 4 output (gene families, pathways, KOs) |
 | `phyloseq_format_HUMAnN()` | Converts HUMAnN data to phyloseq object |
 | `create_phyloseq_files()` | Wrapper to batch convert and save phyloseq objects |
+
