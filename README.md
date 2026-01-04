@@ -32,6 +32,49 @@ source(paste0(path_dir, "/Functions/MetaPhlAn_HUMAnN_4_preprocessing_functions.R
 
 ---
 
+## Convert MetaPhlAn output to phyloseq object
+```r
+# SGB-level
+SGB <- read_infile_MetaPhlAn(
+  in.file = "./Example_data/Example_mpa.tsv",
+  tax_level = "SGB"
+)
+
+SGB.phylo <- phyloseq_format_MetaPhlAn(
+  in.data = SGB,
+  database = "mpa"
+)
+
+# Species-level
+species <- read_infile_MetaPhlAn(
+  in.file = "./Example_data/Example_mpa.tsv",
+  tax_level = "species"
+)
+
+
+species.phylo <- phyloseq_format_MetaPhlAn(
+  in.data = species,
+  database = "mpa"
+)
+
+
+# Genus-level
+genus <- read_infile_MetaPhlAn(
+  in.file = "./Example_data/Example_mpa.tsv",
+  tax_level = "genus"
+)
+
+genus.phylo <- phyloseq_format_MetaPhlAn(
+  in.data = genus,
+  database = "mpa"
+)
+
+# Assign genus names as taxa identifiers
+taxa_names(genus.phylo) <- tax_table(genus.phylo)[, 6]
+```
+
+---
+
 ## Convert MetaPhlAn GTDB_r207 output to phyloseq object
 ```r
 # Species-level
@@ -75,7 +118,7 @@ The `read_infile_HUMAnN_4()` function reads HUMAnN 4 output files and returns a 
 ### Example: KO abundance per taxa
 ```r
 # Read HUMAnN 4 output file
-KO_taxa_list <- read_infile_HUMAnN_4("./Example_data/Example_MetaPhlAn_4.KO_Taxa.tsv")
+KO_taxa_list <- read_infile_HUMAnN_4("./Example_data/HUMAnN.KO_Taxa.tsv")
 
 # Convert each element to phyloseq object individually
 All.phylo <- phyloseq_format_HUMAnN(in.data = KO_taxa_list$All)
