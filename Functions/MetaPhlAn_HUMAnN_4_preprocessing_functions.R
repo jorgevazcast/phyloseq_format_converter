@@ -19,42 +19,115 @@ rar_phylo <- function(phylo.obj,Nreads){
 	
 }
 
-read_infile_MetaPhlAn <- function(in.file = "", tax_level = "", skip.rows = 1){  # Levels: SGB, species, genus
+# MetaPhlAn reports abundances at the MOST SPECIFIC level possible.
+# If reads map to a specific SGB, they're reported there, NOT at genus level.
+# This means filtering for rows ending in "g__" gives incomplete data (92-100%).
+#
+# This function:
+# 1. Takes only the deepest level (SGBs with |t__) - avoids double counting
+# 2. Extracts genus from each SGB's taxonomic path
+# 3. Aggregates (sums) all SGBs belonging to the same genus
+#
+# Result: Complete genus-level abundances that sum to ~100%
 
-	Taxa_df <- utils::read.delim(in.file, sep = "\t", check.names = F, skip = skip.rows)
+aggregate_to_genus_simple <- function(in_df) {
+	in_df$clade_name <- as.character(in_df$clade_name)
+	in_df <- in_df[grepl("\\|t__", in_df$clade_name), ]
+	
+	in_df$genus <- sapply(in_df$clade_name, function(x) {
+		parts <- unlist(strsplit(x, "\\|"))
+		genus_idx <- which(grepl("^g__", parts))
+		paste(parts[1:genus_idx], collapse = "|")
+	})
+
+	numeric_cols <- sapply(in_df, is.numeric)
+	genus_agg <- aggregate(in_df[, numeric_cols], by = list(genus = in_df$genus), FUN = sum)
+	
+	rownames(genus_agg) <- genus_agg$genus
+	genus_agg$clade_name <- genus_agg$genus
+	genus_agg$genus <- NULL
+	
+	return(genus_agg)
+}
+
+read_infile_MetaPhlAn <- function(in.file = "", tax_level = "genus", skip.rows = 1, unclassified = TRUE, Eukaryota = T, use_agg_genus_simple = T){
+	
+	# Validar inputs
+	if(in.file == "") stop("Please provide input file path")
+	if(!tax_level %in% c("SGB", "species", "genus")) {stop("tax_level must be one of: 'SGB', 'species', 'genus'")}
+	
+	# Leer archivo
+	Taxa_df <- utils::read.delim(in.file, sep = "\t", check.names = FALSE, skip = skip.rows)
 	Taxa_df$clade_name <- as.character(Taxa_df$clade_name)
-
+	
+	# Extraer UNCLASSIFIED
+	UNCLASSIFIED <- Taxa_df[Taxa_df$clade_name == "UNCLASSIFIED", ]
+	
+	if(nrow(UNCLASSIFIED) > 0) {
+		UNCLASSIFIED$clade_name <- NULL
+		rownames(UNCLASSIFIED) <- "UNCLASSIFIED"
+		message("Found UNCLASSIFIED row")
+	} else {
+		message("No UNCLASSIFIED row found")
+		UNCLASSIFIED <- NULL
+	}
+	
+	# Filtrar por nivel taxonómico
 	if (tax_level == "SGB") {
-		Taxa_df <- Taxa_df[grepl("[|]t__",Taxa_df$clade_name),]
-		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x){
-				vect <- unlist(strsplit(x, "[|]"))
-				TaxLevel <- grepl("t__",vect[length(vect)])	
-				return(TaxLevel)})	
-	}		
+		Taxa_df <- Taxa_df[grepl("[|]t__", Taxa_df$clade_name), ]
+		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x) {
+			vect <- unlist(strsplit(x, "[|]"))
+			grepl("t__", vect[length(vect)])
+		})
+	}
+	
 	if (tax_level == "species") {
-		Taxa_df <- Taxa_df[grepl("[|]s__",Taxa_df$clade_name),]
-		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x){
-				vect <- unlist(strsplit(x, "[|]"))
-				TaxLevel <- grepl("s__",vect[length(vect)])	
-				return(TaxLevel)})	
+		Taxa_df <- Taxa_df[grepl("[|]s__", Taxa_df$clade_name), ]
+		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x) {
+			vect <- unlist(strsplit(x, "[|]"))
+			grepl("s__", vect[length(vect)])
+		})
 	}
+	
 	if (tax_level == "genus") {
-		Taxa_df <- Taxa_df[grepl("[|]g__",Taxa_df$clade_name),]
-		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x){
-				vect <- unlist(strsplit(x, "[|]"))
-				TaxLevel <- grepl("g__",vect[length(vect)])	
-				return(TaxLevel)})			
+		Taxa_df <- Taxa_df[grepl("[|]g__", Taxa_df$clade_name), ]
+		Select.Taxa.level <- sapply(Taxa_df$clade_name, function(x) {
+			vect <- unlist(strsplit(x, "[|]"))
+			grepl("g__", vect[length(vect)])
+		})
 	}
+
+
+	### Use the function for the genus agglomeration method not ust the filtering ####		
+	if(use_agg_genus_simple == T & tax_level == "genus" ){
+		cat("\nuse_agg_genus_simple function\n")
+		Taxa_df <- aggregate_to_genus_simple(in_df=Taxa_df)
 	
-	row.names(Taxa_df) = Taxa_df$clade_name
-	print(all(names(Select.Taxa.level) == rownames(Taxa_df)))
-	Taxa_df <- Taxa_df[ Select.Taxa.level == T, ]
-	Taxa_df$clade_name = NULL
+	}else{
+		rownames(Taxa_df) <- Taxa_df$clade_name
+		Taxa_df <- Taxa_df[Select.Taxa.level == TRUE, ]
+
+	}
+
+	### Remove Eukaryota ####
+	if(Eukaryota == F){ Taxa_df <- Taxa_df[!grepl("k__Eukaryota", Taxa_df$clade_name), ]}
+
+	Taxa_df$clade_name <- NULL
+				
+	# Add the unclassifed ones
+	if(unclassified == TRUE && !is.null(UNCLASSIFIED)) {  Taxa_df <- rbind(UNCLASSIFIED, Taxa_df)    }
 	
-	Taxa_df = Taxa_df[, colSums(Taxa_df) != 0]
-	Taxa_df = Taxa_df[rowSums(Taxa_df) != 0, ]
+	# Clean empty samples and taxa
+	Taxa_df <- Taxa_df[, colSums(Taxa_df) != 0, drop = FALSE]
+	Taxa_df <- Taxa_df[rowSums(Taxa_df) != 0, , drop = FALSE]
+	
+	# Summary
+	message(sprintf("Loaded %d taxa x %d samples", nrow(Taxa_df), ncol(Taxa_df)))
+	message(sprintf("Column sums range: %.2f - %.2f", min(colSums(Taxa_df)), max(colSums(Taxa_df))))
+	
 	return(Taxa_df)
 }
+
 
 read_infile_MetaPhlAn_GTDB <- function(in.file = "", tax_level = "", skip.rows = 1){  # Levels:  species, genus
 
